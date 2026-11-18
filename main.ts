@@ -1,16 +1,27 @@
-// news-image-20261117 entry (Node 22, standard library only):
-// the poster is drawn in entry.png beside this file; this program
-// copies that image to the output directory the grader provides.
-// Outside the grader, MAKEFUN_OUTPUT_DIR stands in for /output:
-//   MAKEFUN_OUTPUT_DIR=out node main.ts
+// news-image-20261117 — hand the poster over to the grader.
+//
+// The whole entry is one PNG. This script's only job is to put a copy of it
+// in the output directory the grader reads from, and to report where it went.
 
-import { copyFileSync, mkdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { copyFileSync, existsSync, mkdirSync, statSync } from "node:fs";
+import { join, resolve } from "node:path";
 
-const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
-const source = fileURLToPath(new URL('./entry.png', import.meta.url));
-const dest = join(outDir, 'entry.png');
-mkdirSync(outDir, { recursive: true });
-copyFileSync(source, dest);
-console.log(`copied ${source} -> ${dest} (${statSync(dest).size} bytes)`);
+const POSTER = "entry.png";
+
+function publishPoster(): void {
+  const source = resolve(import.meta.dirname, POSTER);
+  if (!existsSync(source)) {
+    throw new Error(`poster missing: expected ${source} to exist`);
+  }
+
+  const destinationDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
+  const destination = join(destinationDir, POSTER);
+
+  mkdirSync(destinationDir, { recursive: true });
+  copyFileSync(source, destination);
+
+  const bytes = statSync(destination).size;
+  console.log(`copied ${source} -> ${destination} (${bytes} bytes)`);
+}
+
+publishPoster();
